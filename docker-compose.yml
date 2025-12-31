@@ -20,7 +20,32 @@ services:
     networks:
       - n8n-network
 
-  # n8n with Puppeteer
+  # Browserless Chrome (headless browser service)
+  browserless:
+    image: browserless/chrome:latest
+    container_name: n8n-browserless
+    restart: unless-stopped
+    environment:
+      - MAX_CONCURRENT_SESSIONS=10
+      - CONNECTION_TIMEOUT=60000
+      - MAX_QUEUE_LENGTH=20
+      - PREBOOT_CHROME=true
+      - DEMO_MODE=false
+      - ENABLE_DEBUGGER=false
+      - TOKEN=${BROWSERLESS_TOKEN:-}
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    networks:
+      - n8n-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/pressure"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # n8n workflow automation
   n8n:
     build:
       context: .
@@ -46,9 +71,6 @@ services:
       - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
       - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
-      # Puppeteer
-      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
       # Execution
       - EXECUTIONS_DATA_PRUNE=true
       - EXECUTIONS_DATA_MAX_AGE=168
@@ -56,6 +78,8 @@ services:
       - n8n_data:/home/node/.n8n
     depends_on:
       postgres:
+        condition: service_healthy
+      browserless:
         condition: service_healthy
     networks:
       - n8n-network
