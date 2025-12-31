@@ -89,6 +89,8 @@ services:
     image: caddy:2-alpine
     container_name: n8n-caddy
     restart: unless-stopped
+    environment:
+      - N8N_HOST=${N8N_HOST}
     ports:
       - "80:80"
       - "443:443"
