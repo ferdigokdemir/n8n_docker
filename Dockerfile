@@ -3,32 +3,27 @@ FROM n8nio/n8n:latest
 
 USER root
 
-# Install Chromium and dependencies for Puppeteer (Debian-based)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install Chromium and dependencies for Puppeteer (Alpine-based)
+RUN /sbin/apk add --no-cache \
     chromium \
-    libnss3 \
-    libfreetype6 \
-    libfreetype6-dev \
-    libharfbuzz0b \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
     ca-certificates \
-    fonts-freefont-ttf \
-    fonts-noto \
-    fonts-noto-color-emoji \
-    dumb-init \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    ttf-freefont \
+    font-noto \
+    font-noto-emoji \
+    dumb-init
 
 # Turkish font support (optional)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    fonts-noto-extra \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN /sbin/apk add --no-cache font-noto-extra
 
 # Set Puppeteer environment variables
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
-    CHROME_PATH=/usr/bin/chromium \
-    CHROMIUM_PATH=/usr/bin/chromium
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    CHROME_PATH=/usr/bin/chromium-browser \
+    CHROMIUM_PATH=/usr/bin/chromium-browser
 
 # Create directories for n8n
 RUN mkdir -p /home/node/.n8n && \
