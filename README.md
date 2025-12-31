@@ -1,29 +1,30 @@
-# n8n Docker Deployment with Puppeteer
+# n8n Docker Deployment with Browserless
 
-Production-ready n8n deployment with Puppeteer support for Digital Ocean.
+Production-ready n8n deployment with Browserless.io support for Digital Ocean.
 
 ## 🏗️ Architecture
 
 ```
-┌──────────────────────────────────────────────────┐
-│              Digital Ocean Droplet                │
-│  ┌──────────────────────────────────────────────┐│
-│  │              Docker Network                   ││
-│  │  ┌────────┐  ┌────────┐  ┌────────────────┐ ││
-│  │  │ Caddy  │  │Postgres│  │n8n + Puppeteer │ ││
-│  │  │(SSL)   │  │  (DB)  │  │                │ ││
-│  │  └────────┘  └────────┘  └────────────────┘ ││
-│  └──────────────────────────────────────────────┘│
-└──────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│                    Digital Ocean Droplet                       │
+│  ┌───────────────────────────────────────────────────────────┐│
+│  │                    Docker Network                          ││
+│  │  ┌────────┐  ┌────────┐  ┌──────┐  ┌────────────────────┐ ││
+│  │  │ Caddy  │  │Postgres│  │ n8n  │  │    Browserless     │ ││
+│  │  │ (SSL)  │  │  (DB)  │  │      │  │ (Headless Chrome)  │ ││
+│  │  └────────┘  └────────┘  └──────┘  └────────────────────┘ ││
+│  └───────────────────────────────────────────────────────────┘│
+└───────────────────────────────────────────────────────────────┘
 ```
 
 ## ✨ Features
 
-- **Puppeteer/Chromium support** - Web scraping, screenshots, PDF generation
+- **Browserless.io integration** - Headless Chrome for web scraping, screenshots, PDF generation
 - **Automatic SSL** - Let's Encrypt via Caddy
 - **PostgreSQL** - Production-grade database
 - **Backup/Restore** - Automated backup scripts
 - **Security** - Basic auth, encryption, firewall
+- **Scalable browser sessions** - Up to 10 concurrent browser sessions
 
 ## 🚀 Quick Start
 
@@ -103,6 +104,15 @@ n8n-docker/
 | `N8N_BASIC_AUTH_PASSWORD` | Admin password | Yes |
 | `N8N_ENCRYPTION_KEY` | 32-char encryption key | Yes |
 | `TIMEZONE` | Server timezone | No |
+| `BROWSERLESS_TOKEN` | Browserless API token (optional) | No |
+
+### Browserless Configuration
+
+The Browserless service is pre-configured with:
+- **MAX_CONCURRENT_SESSIONS:** 10
+- **CONNECTION_TIMEOUT:** 60000ms
+- **MAX_QUEUE_LENGTH:** 20
+- **PREBOOT_CHROME:** Enabled for faster startup
 
 ### Generate Secure Passwords
 
@@ -181,15 +191,27 @@ crontab -e
 
 ## 🐛 Troubleshooting
 
-### Puppeteer Issues
+### Browserless Issues
 
 ```bash
-# Check Chromium is available
-docker compose exec n8n chromium-browser --version
+# Check Browserless health
+curl http://localhost:3000/pressure
 
-# Test with a simple script
-docker compose exec n8n node -e "console.log(process.env.PUPPETEER_EXECUTABLE_PATH)"
+# View Browserless logs
+docker compose logs browserless
+
+# Check Browserless container status
+docker compose exec browserless curl -s http://localhost:3000/pressure | jq
+
+# Restart Browserless if needed
+docker compose restart browserless
 ```
+
+### Using Browserless in n8n
+
+In n8n, configure the **HTTP Request** or **Puppeteer** nodes to use:
+- **WebSocket URL:** `ws://browserless:3000`
+- **HTTP URL:** `http://browserless:3000`
 
 ### SSL Certificate Issues
 
