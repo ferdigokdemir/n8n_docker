@@ -72,8 +72,12 @@ services:
       # Execution
       - EXECUTIONS_DATA_PRUNE=true
       - EXECUTIONS_DATA_MAX_AGE=168
+      # Binary Data (Write to Disk)
+      - N8N_DEFAULT_BINARY_DATA_MODE=filesystem
+      - N8N_BINARY_DATA_STORAGE_PATH=/files
     volumes:
       - n8n_data:/home/node/.n8n
+      - n8n_files:/files
     depends_on:
       postgres:
         condition: service_healthy
@@ -104,6 +108,7 @@ services:
 volumes:
   postgres_data:
   n8n_data:
+  n8n_files:
   caddy_data:
   caddy_config:
 

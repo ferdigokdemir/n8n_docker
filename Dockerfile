@@ -2,10 +2,10 @@
 # Using base n8n image - Chromium handled by separate Browserless container
 FROM n8nio/n8n:latest
 
-# Create files directory with correct permissions
+# Create directories with correct permissions for node user (UID 1000)
 USER root
-RUN mkdir -p /home/node/.n8n/files && \
-    chown -R node:node /home/node/.n8n
+RUN mkdir -p /home/node/.n8n/files /files && \
+    chown -R node:node /home/node/.n8n /files
 USER node
 
 # No additional setup needed - Browserless provides browser functionality
